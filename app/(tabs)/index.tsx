@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
@@ -5,9 +6,11 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View
 } from "react-native";
 
+import { Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const StudentsData = "https://nyc.cloud.appwrite.io/v1/storage/buckets/68f8ed0d0031eeec7294/files/68fbe0130016a7d10f58/view?project=68f8eca50022e7d7ec23&mode=admin"
@@ -29,6 +32,20 @@ type Students = {
 export default function TabOneScreen() {
   const [students, setStudents] = useState<Students[]>([])
   const [query, setQuery] = useState("")
+  const [selectedStudentId, setSelectedStudent] = useState<number | null>(null)
+  const [profileVisability, setProfileVisability] = useState(false)
+
+  const selectedStudent = students.find(student => student.id === selectedStudentId)
+
+  const profileOn = (id: number) => {
+    setSelectedStudent(id)
+    setProfileVisability(true)
+  }
+
+  const profileOff = () => {
+    setSelectedStudent(null)
+    setProfileVisability(false)
+  }
 
   useEffect(() => {
     let isMounted = true
@@ -47,12 +64,6 @@ export default function TabOneScreen() {
     }
   }, [])
 
-  const q = query.trimEnd().toLowerCase()
-  const filtered = students.filter((person) => {
-      return person.firstName.toLowerCase().includes(q) || 
-              person.lastName.toLowerCase().includes(q)
-    }
-  )
 
   const filteredWithMemoization = useMemo( ()=> {
     const q = query.trimEnd().toLowerCase()
@@ -72,10 +83,18 @@ export default function TabOneScreen() {
       <View>
         <Text>{item.firstName} {item.lastName}</Text>
         <Text>{item.classification}</Text>
+        <Text>{item.officer}</Text>
         <Image source={{uri: item.imageURL}} width={50} height={50} />
+        {item.showEmail && <Text>{item.email}</Text>}
+        {item.showPhone && <Text>{item.phone}</Text>}
+
+        <TouchableOpacity onPress={() => profileOn(item.id)}>
+          <Ionicons name="arrow-forward-circle" size={50}/>
+        </TouchableOpacity>
       </View>
-      
     )
+
+
   }
   return (
     <SafeAreaView>
@@ -92,7 +111,7 @@ export default function TabOneScreen() {
 
       <>
         <FlatList 
-        data={filtered}
+        data={filteredWithMemoization}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderStudent}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -104,10 +123,15 @@ export default function TabOneScreen() {
           </View>
             }
             contentContainerStyle={
-              filtered.length === 0 ? { flex: 1 } : undefined
+              filteredWithMemoization.length === 0 ? { flex: 1 } : undefined
             }
-            keyboardShouldPersistTaps="handled"
         />
+        <Modal visible = {profileVisability}>
+          <Text>{selectedStudent?.firstName} {selectedStudent?.lastName}</Text>
+           <TouchableOpacity onPress={profileOff}>
+          <Ionicons name="arrow-forward-circle" size={50}/>
+        </TouchableOpacity>
+        </Modal>
       </>
     </SafeAreaView>
   );
