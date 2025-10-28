@@ -80,13 +80,15 @@ export default function TabOneScreen() {
 
   const renderStudent = ({item}: {item: Students}) => {
     return (
-      <View>
-        <Text>{item.firstName} {item.lastName}</Text>
-        <Text>{item.classification}</Text>
-        <Text>{item.officer}</Text>
-        <Image source={{uri: item.imageURL}} width={50} height={50} />
-        {item.showEmail && <Text>{item.email}</Text>}
-        {item.showPhone && <Text>{item.phone}</Text>}
+      <View style={styles.container}>
+        <Text style={styles.mainPageName}>{item.firstName} {item.lastName}</Text>
+        <Image source={{uri: item.imageURL}} width={100} height={100} />
+         <Text style={styles.mainPageStats}>{item.officer}</Text>
+        <Text style={styles.mainPageStats}>{item.classification}</Text>
+        <Text style={styles.mainPageStats}>{item.relationshipStatus}</Text>
+        {item.showEmail && <Text style={styles.mainPageStats}>{item.email}</Text>}
+        {item.showPhone && <Text style={styles.mainPageStats}>{item.phone}</Text>}
+        
 
         <TouchableOpacity onPress={() => profileOn(item.id)}>
           <Ionicons name="arrow-forward-circle" size={50}/>
@@ -98,7 +100,7 @@ export default function TabOneScreen() {
   }
   return (
     <SafeAreaView>
-      <Text>Club Directory</Text>
+      <Text style={styles.title}>Club Directory</Text>
 
       <TextInput
         placeholder="Search by first or last name..."
@@ -107,6 +109,7 @@ export default function TabOneScreen() {
         autoCapitalize="none"
         autoCorrect={false}
         clearButtonMode="while-editing"
+        style={styles.SearchBar}
       />
 
       <>
@@ -127,10 +130,20 @@ export default function TabOneScreen() {
             }
         />
         <Modal visible = {profileVisability}>
-          <Text>{selectedStudent?.firstName} {selectedStudent?.lastName}</Text>
-           <TouchableOpacity onPress={profileOff}>
-          <Ionicons name="arrow-forward-circle" size={50}/>
-        </TouchableOpacity>
+          <View>
+            <TouchableOpacity onPress={profileOff}>
+              <Ionicons name="close-circle" size={60}/>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.modalContainer}>
+            <Image source={{uri: selectedStudent?.imageURL}} width={250} height={250}/>
+            <Text style={styles.modalPageName}>{selectedStudent?.firstName} {selectedStudent?.lastName}</Text>
+            <Text style={styles.modalPageStats}>{selectedStudent?.officer}</Text>
+            <Text style={styles.modalPageStats}>{selectedStudent?.classification}</Text>
+            <Text style={styles.modalPageStats}>{selectedStudent?.relationshipStatus}</Text>
+            {selectedStudent?.showEmail && <Text style={styles.modalPageStats}>{selectedStudent?.email}</Text>}
+            {selectedStudent?.showPhone && <Text style={styles.modalPageStats}>{selectedStudent?.phone}</Text>}
+          </View>
         </Modal>
       </>
     </SafeAreaView>
@@ -143,13 +156,48 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+   modalContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 70,
+  },
   title: {
-    fontSize: 20,
+    fontSize: 40,
+    textAlign: 'center',
     fontWeight: 'bold',
+  },
+  SearchBar: {
+    width: '80%',
+    alignSelf: 'center',
+    borderWidth: 1,
+    borderColor: 'black',
+    marginBottom: 25,
+  },
+  mainPageName: {
+    fontSize: 25,
+    fontWeight: 'bold',
+  },
+  mainPageStats: {
+    fontSize: 15,
+    fontWeight: 'bold'
   },
   separator: {
     marginVertical: 30,
     height: 1,
     width: '80%',
+  },
+  ModalImage: {
+    alignItems: "center",
+   justifyContent: "center",
+   marginTop: 70
+  },
+  modalPageName: {
+    fontSize: 25,
+    fontWeight: 'bold',
+  },
+  modalPageStats: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginVertical: 5
   },
 });
