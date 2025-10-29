@@ -13,6 +13,8 @@ import {
 import { Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { Linking } from "react-native";
+
 const StudentsData = "https://nyc.cloud.appwrite.io/v1/storage/buckets/68f8ed0d0031eeec7294/files/68fbe0130016a7d10f58/view?project=68f8eca50022e7d7ec23&mode=admin"
 
 type Students = {
@@ -84,10 +86,6 @@ export default function TabOneScreen() {
         <Text style={styles.mainPageName}>{item.firstName} {item.lastName}</Text>
         <Image source={{uri: item.imageURL}} width={100} height={100} />
          <Text style={styles.mainPageStats}>{item.officer}</Text>
-        <Text style={styles.mainPageStats}>{item.classification}</Text>
-        <Text style={styles.mainPageStats}>{item.relationshipStatus}</Text>
-        {item.showEmail && <Text style={styles.mainPageStats}>{item.email}</Text>}
-        {item.showPhone && <Text style={styles.mainPageStats}>{item.phone}</Text>}
         
 
         <TouchableOpacity onPress={() => profileOn(item.id)}>
@@ -98,6 +96,7 @@ export default function TabOneScreen() {
 
 
   }
+  
   return (
     <SafeAreaView>
       <Text style={styles.title}>Club Directory</Text>
@@ -129,6 +128,7 @@ export default function TabOneScreen() {
               filteredWithMemoization.length === 0 ? { flex: 1 } : undefined
             }
         />
+        
         <Modal visible = {profileVisability}>
           <View>
             <TouchableOpacity onPress={profileOff}>
@@ -141,8 +141,13 @@ export default function TabOneScreen() {
             <Text style={styles.modalPageStats}>{selectedStudent?.officer}</Text>
             <Text style={styles.modalPageStats}>{selectedStudent?.classification}</Text>
             <Text style={styles.modalPageStats}>{selectedStudent?.relationshipStatus}</Text>
-            {selectedStudent?.showEmail && <Text style={styles.modalPageStats}>{selectedStudent?.email}</Text>}
-            {selectedStudent?.showPhone && <Text style={styles.modalPageStats}>{selectedStudent?.phone}</Text>}
+            <TouchableOpacity onPress={() => Linking.openURL(`mailto:${selectedStudent?.email}`)}>
+            {selectedStudent?.showEmail && <Text style={[styles.modalPageStats, { color: "blue", textDecorationLine: "underline" }]}>{selectedStudent?.email}</Text>}
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => Linking.openURL(`tel:${selectedStudent?.phone}`)}>
+            {selectedStudent?.showPhone && <Text style={[styles.modalPageStats, { color: "blue", textDecorationLine: "underline" }]}>{selectedStudent?.phone}</Text>}
+            </TouchableOpacity>
           </View>
         </Modal>
       </>
