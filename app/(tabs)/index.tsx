@@ -13,6 +13,7 @@ import {
 import { Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { useAuth } from "@/hooks/AuthContext";
 import { Linking } from "react-native";
 
 const StudentsData = "https://nyc.cloud.appwrite.io/v1/storage/buckets/68f8ed0d0031eeec7294/files/68fbe0130016a7d10f58/view?project=68f8eca50022e7d7ec23&mode=admin"
@@ -32,6 +33,9 @@ type Students = {
 }
 
 export default function TabOneScreen() {
+
+  const {user, loading, register, login} = useAuth()
+
   const [students, setStudents] = useState<Students[]>([])
   const [query, setQuery] = useState("")
   const [selectedStudentId, setSelectedStudent] = useState<number | null>(null)
@@ -100,6 +104,8 @@ export default function TabOneScreen() {
   return (
     <SafeAreaView>
       <Text style={styles.title}>Club Directory</Text>
+      <Text> {user?.name} </Text>
+      <Text> {user?.email} </Text>
 
       <TextInput
         placeholder="Search by first or last name..."
@@ -136,6 +142,10 @@ export default function TabOneScreen() {
             </TouchableOpacity>
           </View>
           <View style={styles.modalContainer}>
+
+            <Text> {user?.name} </Text>
+            <Text> {user?.email} </Text>
+
             <Image source={{uri: selectedStudent?.imageURL}} width={250} height={250}/>
             <Text style={styles.modalPageName}>{selectedStudent?.firstName} {selectedStudent?.lastName}</Text>
             <Text style={styles.modalPageStats}>{selectedStudent?.officer}</Text>

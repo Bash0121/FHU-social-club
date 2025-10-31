@@ -38,10 +38,15 @@ async function getCurrentUser() {
     }
 }
 
+async function logoutCurrentDevice() {
+    await account.deleteSession({sessionId:"current"})
+}
+
 export const appwrite = {
     client,
     account,
     registerWithEmail,
     loginWithEmail,
-    getCurrentUser
+    getCurrentUser,
+    logoutCurrentDevice
 }
