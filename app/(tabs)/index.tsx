@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   FlatList,
   Image,
   StyleSheet,
@@ -14,9 +15,10 @@ import { Modal } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@/hooks/AuthContext";
+import { useRouter } from "expo-router";
 import { Linking } from "react-native";
 
-const StudentsData = "https://nyc.cloud.appwrite.io/v1/storage/buckets/68f8ed0d0031eeec7294/files/68fbe0130016a7d10f58/view?project=68f8eca50022e7d7ec23&mode=admin"
+const StudentsData = "https://nyc.cloud.appwrite.io/v1/storage/buckets/68f8ed0d0031eeec7294/files/690cf8d2003adbcd993f/view?project=68f8eca50022e7d7ec23&mode=admin"
 
 type Students = {
   id: number
@@ -30,35 +32,32 @@ type Students = {
   showPhone: boolean
   imageURL: string
   officer: string
+  club:"Cultural Exchange Society" | "Tech Innovators Club" | "Environmental Action League" | string
 }
 
 export default function TabOneScreen() {
-
-  const {user, loading, register, login} = useAuth()
+  const {user, loading} = useAuth()
+  const router = useRouter();
 
   const [students, setStudents] = useState<Students[]>([])
   const [query, setQuery] = useState("")
   const [selectedStudentId, setSelectedStudent] = useState<number | null>(null)
   const [profileVisability, setProfileVisability] = useState(false)
 
-  const selectedStudent = students.find(student => student.id === selectedStudentId)
 
-  const profileOn = (id: number) => {
-    setSelectedStudent(id)
-    setProfileVisability(true)
-  }
-
-  const profileOff = () => {
+   useLayoutEffect(() => {
+  if (!loading && !user) {
     setSelectedStudent(null)
     setProfileVisability(false)
+    router.replace("/auth");
   }
+}, [user, loading]);
 
-  useEffect(() => {
+    useEffect(() => {
     let isMounted = true
     async function load() {
       const res = await fetch(StudentsData, {method: "GET"})
       const json = await(res.json()) as Students[]
-
       if (isMounted) {
         setStudents(json)
       }
@@ -70,18 +69,31 @@ export default function TabOneScreen() {
     }
   }, [])
 
-
   const filteredWithMemoization = useMemo( ()=> {
     const q = query.trimEnd().toLowerCase()
-
     if(!q) return students
-
     return students.filter((person) => {
       return person.firstName.toLowerCase().includes(q) || 
               person.lastName.toLowerCase().includes(q)
     }
   )
   }, [query, students])
+
+ const selectedStudent = useMemo(() => {
+  if (!user || students.length === 0 || selectedStudentId === null) return null
+  return students.find(student => student.id === selectedStudentId) ?? null
+}, [students, selectedStudentId, user])
+
+
+  const profileOn = (id: number) => {
+    setSelectedStudent(id)
+    setProfileVisability(true)
+  }
+
+  const profileOff = () => {
+    setSelectedStudent(null)
+    setProfileVisability(false)
+  }
 
 
   const renderStudent = ({item}: {item: Students}) => {
@@ -102,10 +114,14 @@ export default function TabOneScreen() {
   }
   
   return (
-    <SafeAreaView>
+    <SafeAreaView style={{ flex: 1 }}>
+    {loading || !user ? (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    ) : (
+      <>
       <Text style={styles.title}>Club Directory</Text>
-      <Text> {user?.name} </Text>
-      <Text> {user?.email} </Text>
 
       <TextInput
         placeholder="Search by first or last name..."
@@ -117,7 +133,6 @@ export default function TabOneScreen() {
         style={styles.SearchBar}
       />
 
-      <>
         <FlatList 
         data={filteredWithMemoization}
         keyExtractor={(item) => item.id.toString()}
@@ -134,7 +149,7 @@ export default function TabOneScreen() {
               filteredWithMemoization.length === 0 ? { flex: 1 } : undefined
             }
         />
-        
+        {profileVisability && selectedStudent && (
         <Modal visible = {profileVisability}>
           <View>
             <TouchableOpacity onPress={profileOff}>
@@ -143,14 +158,12 @@ export default function TabOneScreen() {
           </View>
           <View style={styles.modalContainer}>
 
-            <Text> {user?.name} </Text>
-            <Text> {user?.email} </Text>
-
             <Image source={{uri: selectedStudent?.imageURL}} width={250} height={250}/>
             <Text style={styles.modalPageName}>{selectedStudent?.firstName} {selectedStudent?.lastName}</Text>
             <Text style={styles.modalPageStats}>{selectedStudent?.officer}</Text>
             <Text style={styles.modalPageStats}>{selectedStudent?.classification}</Text>
             <Text style={styles.modalPageStats}>{selectedStudent?.relationshipStatus}</Text>
+            <Text style={styles.modalPageStats}>{selectedStudent?.club}</Text>
             <TouchableOpacity onPress={() => Linking.openURL(`mailto:${selectedStudent?.email}`)}>
             {selectedStudent?.showEmail && <Text style={[styles.modalPageStats, { color: "blue", textDecorationLine: "underline" }]}>{selectedStudent?.email}</Text>}
             </TouchableOpacity>
@@ -160,7 +173,9 @@ export default function TabOneScreen() {
             </TouchableOpacity>
           </View>
         </Modal>
+        )}
       </>
+    )}
     </SafeAreaView>
   );
 }

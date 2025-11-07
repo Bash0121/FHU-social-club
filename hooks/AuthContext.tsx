@@ -18,28 +18,40 @@ export function AuthProvider({children} : {children:React.ReactNode}) {
     const [loading, setLoading] = useState(true)
 
     useEffect( ()=> {
-        (async() => {
+        const init = async() => {
+            try {
         const currentUser = await appwrite.getCurrentUser()
         setUser(currentUser)
+    } catch (err) {
+        setUser(null)
+    } finally {
         setLoading(false)
+    }
 
-    })()
+    }; init()
 }, [] )
 
 
 async function login(email:string, password:string) {
-    const loggedInUser = await appwrite.loginWithEmail({email, password})
-    setUser(loggedInUser)
+    await appwrite.loginWithEmail({email, password})
+    const currentUser = await appwrite.getCurrentUser()
+    setUser(currentUser)
 }
 
 async function register(email:string, password:string, name:string) {
-    const loggedInUser = await appwrite.registerWithEmail({email, password, name})
-    setUser(loggedInUser)
+    await appwrite.registerWithEmail({email, password, name})
+    const currentUser = await appwrite.getCurrentUser()
+    setUser(currentUser)
 }
 
 async function logout() {
-    appwrite.logoutCurrentDevice()
+    try {
+        await appwrite.logoutCurrentDevice()
+    } catch (err) {
+        console.log("Logout failed:", err);
+    } finally {
     setUser(null)
+    }
 }
 
 return (

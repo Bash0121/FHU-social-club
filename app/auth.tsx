@@ -1,12 +1,13 @@
 import { useAuth } from "@/hooks/AuthContext";
+import { router } from "expo-router";
 import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function AuthScreen() {
@@ -25,8 +26,10 @@ export default function AuthScreen() {
     try {
       if (mode === "login") {
         await login(email.trim(), password);
+        router.replace("(tabs)")
       } else {
         await register(email.trim(), password, name.trim());
+        router.replace("(tabs)")
       }
     } catch (err: any) {
       // Appwrite throws rich errors (code, message, etc.)
@@ -46,26 +49,6 @@ export default function AuthScreen() {
     );
   }
 
-  // if logged in, show a simple profile + logout
-  if (user) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Welcome 👋</Text>
-        <Text style={styles.label}>Name</Text>
-        <Text style={styles.value}>{user.name}</Text>
-        <Text style={styles.label}>Email</Text>
-        <Text style={styles.value}>{user.email}</Text>
-
-        <TouchableOpacity
-          style={[styles.button, styles.logoutButton]}
-          onPress={logout}
-          disabled={submitting}
-        >
-          <Text style={styles.buttonText}>Log out</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
 
   // if logged OUT, show login/register form
   return (
@@ -108,12 +91,15 @@ export default function AuthScreen() {
       />
 
       {error && <Text style={styles.errorText}>{error}</Text>}
+      
 
       <TouchableOpacity
         style={styles.button}
         onPress={handleSubmit}
         disabled={submitting}
       >
+
+      {/* <TouchableOpacity style={styles.button} onPress={logout} disabled={submitting} ><Text>Logout</Text></TouchableOpacity> */}
         {submitting ? (
           <ActivityIndicator />
         ) : (

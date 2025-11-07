@@ -1,4 +1,4 @@
-import { Account, Client, ID, Models } from "react-native-appwrite";
+import { Account, Client, Databases, ID, Models } from "react-native-appwrite";
 import "react-native-url-polyfill/auto";
 
 const APPWRITE_ENDPOINT ="https://nyc.cloud.appwrite.io/v1"
@@ -11,6 +11,8 @@ const client = new Client()
     .setPlatform(APPWRITE_PLATFORM_NAME)
 
 const account = new Account(client)
+
+export const databases = new Databases(client)
 
 async function registerWithEmail( {email, password, name} : {email:string, password:string, name:string}) {
     await account.create({userId:ID.unique(), email, password, name})
@@ -42,9 +44,11 @@ async function logoutCurrentDevice() {
     await account.deleteSession({sessionId:"current"})
 }
 
+
 export const appwrite = {
     client,
     account,
+    databases,
     registerWithEmail,
     loginWithEmail,
     getCurrentUser,
