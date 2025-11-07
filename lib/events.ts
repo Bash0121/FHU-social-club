@@ -1,4 +1,3 @@
-// src/lib/events.ts
 import { Query } from "react-native-appwrite";
 import { databases } from "./appwrite";
 

@@ -1,5 +1,5 @@
-import { appwrite } from "@/lib/appwrite";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createAppwriteService, MemberRow } from "@/lib/appwrite";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { Models } from "react-native-appwrite";
 
 type AuthContextType = {
@@ -14,13 +14,16 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({children} : {children:React.ReactNode}) {
 
+    const appwriteService = createAppwriteService(null)
+
     const [user, setUser] = useState<Models.User<Models.Preferences> | null>(null)
+    const [member, setMember] = useState<MemberRow | null>(null)
     const [loading, setLoading] = useState(true)
 
     useEffect( ()=> {
         const init = async() => {
             try {
-        const currentUser = await appwrite.getCurrentUser()
+        const currentUser = await appwriteService.getCurrentUser()
         setUser(currentUser)
     } catch (err) {
         setUser(null)
@@ -33,26 +36,38 @@ export function AuthProvider({children} : {children:React.ReactNode}) {
 
 
 async function login(email:string, password:string) {
-    await appwrite.loginWithEmail({email, password})
-    const currentUser = await appwrite.getCurrentUser()
+    await appwriteService.loginWithEmail({email, password})
+    const currentUser = await appwriteService.getCurrentUser()
     setUser(currentUser)
 }
 
 async function register(email:string, password:string, name:string) {
-    await appwrite.registerWithEmail({email, password, name})
-    const currentUser = await appwrite.getCurrentUser()
+    await appwriteService.registerWithEmail({email, password, name})
+    const currentUser = await appwriteService.getCurrentUser()
     setUser(currentUser)
 }
 
 async function logout() {
     try {
-        await appwrite.logoutCurrentDevice()
+        await appwriteService.logoutCurrentDevice()
     } catch (err) {
         console.log("Logout failed:", err);
     } finally {
     setUser(null)
     }
 }
+
+const loadUser = useCallback( ()=> {
+    setLoading(true)
+    try {
+        const user = await appwriteService.getCurrentUser()
+        if (user) {
+            const member = await appwriteService.getMemberByUserId(user.$id)
+            setMember(member??null)
+        }
+    }
+
+}, [appwriteService])
 
 return (
     <AuthContext.Provider value={{user, loading, login, register, logout}} >
