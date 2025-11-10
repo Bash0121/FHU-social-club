@@ -94,7 +94,7 @@ export default function AuthScreen() {
       
 
       <TouchableOpacity
-        style={styles.button}
+        style={[styles.button, styles.logoutButton]}
         onPress={handleSubmit}
         disabled={submitting}
       >
@@ -176,7 +176,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   logoutButton: {
-    backgroundColor: "#ff4d4d",
+    backgroundColor: "yellow",
+    borderWidth: 0.5,
+    borderColor: 'white',
   },
   buttonText: {
     color: "black",
@@ -184,10 +186,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   linkText: {
-    color: "#5ea0ff",
+    color: "yellow",
     textAlign: "center",
     fontSize: 14,
     fontWeight: "500",
+    textDecorationLine: "underline"
   },
   errorText: {
     color: "#ff6b6b",

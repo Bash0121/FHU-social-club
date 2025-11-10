@@ -1,233 +1,185 @@
+import { createAppwriteService } from "@/lib/appwrite";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  Image,
+  Modal,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
-import { Modal } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+export default function Homepage({}) {
+  type Event = {
+    $id: string;
+    location: string;
+    eventName: string;
+    eventDate: string;
+    description: string;
+    club?: string;
+  };
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [profileVisability, setProfileVisability] = useState(false);
 
-import { useAuth } from "@/hooks/AuthContext";
-import { useRouter } from "expo-router";
-import { Linking } from "react-native";
+  const appwriteService = useMemo(() => createAppwriteService(), []);
 
-const StudentsData = "https://nyc.cloud.appwrite.io/v1/storage/buckets/68f8ed0d0031eeec7294/files/690cf8d2003adbcd993f/view?project=68f8eca50022e7d7ec23&mode=admin"
+  useEffect(() => {
+    const loadEvents = async () => {
+      const data = await appwriteService.getEvents();
+      setEvents(data);
+      setLoading(false);
+    };
+    loadEvents();
+  }, []);
 
-type Students = {
-  id: number
-  firstName: string
-  lastName: string
-  relationshipStatus: "complicated" | "taken" | "single" | string
-  classification: "Freshman" | "Sophomore" | "Junior" | "Senior" | string;
-  email: string
-  phone: string
-  showEmail: boolean
-  showPhone: boolean
-  imageURL: string
-  officer: string
-  club:"Cultural Exchange Society" | "Tech Innovators Club" | "Environmental Action League" | string
-}
-
-export default function TabOneScreen() {
-  const {user, loading} = useAuth()
-  const router = useRouter();
-
-  const [students, setStudents] = useState<Students[]>([])
-  const [query, setQuery] = useState("")
-  const [selectedStudentId, setSelectedStudent] = useState<number | null>(null)
-  const [profileVisability, setProfileVisability] = useState(false)
-
-
-   useLayoutEffect(() => {
-  if (!loading && !user) {
-    setSelectedStudent(null)
-    setProfileVisability(false)
-    router.replace("/auth");
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text>Loading events...</Text>
+      </View>
+    );
   }
-}, [user, loading]);
 
-    useEffect(() => {
-    let isMounted = true
-    async function load() {
-      const res = await fetch(StudentsData, {method: "GET"})
-      const json = await(res.json()) as Students[]
-      if (isMounted) {
-        setStudents(json)
-      }
-    }
-
-    load ()
-    return () => {
-      isMounted = false
-    }
-  }, [])
-
-  const filteredWithMemoization = useMemo( ()=> {
-    const q = query.trimEnd().toLowerCase()
-    if(!q) return students
-    return students.filter((person) => {
-      return person.firstName.toLowerCase().includes(q) || 
-              person.lastName.toLowerCase().includes(q)
-    }
-  )
-  }, [query, students])
-
- const selectedStudent = useMemo(() => {
-  if (!user || students.length === 0 || selectedStudentId === null) return null
-  return students.find(student => student.id === selectedStudentId) ?? null
-}, [students, selectedStudentId, user])
-
-
-  const profileOn = (id: number) => {
-    setSelectedStudent(id)
-    setProfileVisability(true)
-  }
+  const profileOn = (event: any) => {
+    setSelectedEvent(event);
+    setProfileVisability(true);
+  };
 
   const profileOff = () => {
-    setSelectedStudent(null)
-    setProfileVisability(false)
-  }
+    setSelectedEvent(null);
+    setProfileVisability(false);
+  };
 
-
-  const renderStudent = ({item}: {item: Students}) => {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.mainPageName}>{item.firstName} {item.lastName}</Text>
-        <Image source={{uri: item.imageURL}} width={100} height={100} />
-         <Text style={styles.mainPageStats}>{item.officer}</Text>
-        
-
-        <TouchableOpacity onPress={() => profileOn(item.id)}>
-          <Ionicons name="arrow-forward-circle" size={50}/>
-        </TouchableOpacity>
-      </View>
-    )
-
-
-  }
-  
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-    {loading || !user ? (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-      </View>
-    ) : (
-      <>
-      <Text style={styles.title}>Club Directory</Text>
-
-      <TextInput
-        placeholder="Search by first or last name..."
-        value={query}
-        onChangeText={setQuery}
-        autoCapitalize="none"
-        autoCorrect={false}
-        clearButtonMode="while-editing"
-        style={styles.SearchBar}
+    <View style={styles.container}>
+      <Text style={styles.header}>Upcoming Events</Text>
+      <FlatList
+        data={events}
+        keyExtractor={(item) => item.$id}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <Text style={styles.name}>{item.eventName}</Text>
+            <Text style={styles.mainPageStats}>{item.club}</Text>
+            <TouchableOpacity onPress={() => profileOn(item)}>
+              <Ionicons name="arrow-forward-circle-outline" size={60} style={styles.icon} />
+            </TouchableOpacity>
+          </View>
+        )}
       />
 
-        <FlatList 
-        data={filteredWithMemoization}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderStudent}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        ListEmptyComponent={
-          <View>
-            <Text>
-               No students match “{query}”.
-            </Text>
-          </View>
-            }
-            contentContainerStyle={
-              filteredWithMemoization.length === 0 ? { flex: 1 } : undefined
-            }
-        />
-        {profileVisability && selectedStudent && (
-        <Modal visible = {profileVisability}>
+      {profileVisability && selectedEvent && (
+        <Modal visible={profileVisability}>
           <View>
             <TouchableOpacity onPress={profileOff}>
-              <Ionicons name="close-circle" size={60}/>
+              <Ionicons name="close-circle" size={60} style={styles.modalIcon}/>
             </TouchableOpacity>
           </View>
           <View style={styles.modalContainer}>
+            {selectedEvent && (
+              <>
+                <Text style={styles.modalPageName}>
+                  {selectedEvent?.eventName}
+                </Text>
+                <Text style={styles.modalPageStats}>
+                  {new Date(selectedEvent.eventDate).toLocaleDateString(
+                    undefined,
+                    {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    }
+                  )}
+                </Text>
+                <Text style={styles.modalPageStats}>{selectedEvent?.club}</Text>
 
-            <Image source={{uri: selectedStudent?.imageURL}} width={250} height={250}/>
-            <Text style={styles.modalPageName}>{selectedStudent?.firstName} {selectedStudent?.lastName}</Text>
-            <Text style={styles.modalPageStats}>{selectedStudent?.officer}</Text>
-            <Text style={styles.modalPageStats}>{selectedStudent?.classification}</Text>
-            <Text style={styles.modalPageStats}>{selectedStudent?.relationshipStatus}</Text>
-            <Text style={styles.modalPageStats}>{selectedStudent?.club}</Text>
-            <TouchableOpacity onPress={() => Linking.openURL(`mailto:${selectedStudent?.email}`)}>
-            {selectedStudent?.showEmail && <Text style={[styles.modalPageStats, { color: "blue", textDecorationLine: "underline" }]}>{selectedStudent?.email}</Text>}
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => Linking.openURL(`tel:${selectedStudent?.phone}`)}>
-            {selectedStudent?.showPhone && <Text style={[styles.modalPageStats, { color: "blue", textDecorationLine: "underline" }]}>{selectedStudent?.phone}</Text>}
-            </TouchableOpacity>
+                <Text style={styles.modalPageStats}>
+                  {selectedEvent?.location}
+                </Text>
+                <Text style={styles.modalPageStats}>
+                  {selectedEvent?.description}
+                </Text>
+                <View style={styles.separator}></View>
+              </>
+            )}
           </View>
         </Modal>
-        )}
-      </>
-    )}
-    </SafeAreaView>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+  container: { flex: 1, padding: 20, backgroundColor: "black" },
+  header: { fontSize: 24, fontWeight: "bold", marginBottom: 20, color: "white" },
+  card: {
+    backgroundColor: "black",
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 10,
+    borderWidth: 0.5,
+    borderColor: 'yellow'
   },
-   modalContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 70,
+  name: { fontSize: 25, fontWeight: "600", color: 'white'},
+  date: { color: "#555", marginTop: 5 },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  
+  modalContainer: {
+    alignItems: "center",
+    backgroundColor: 'black',
+    flex: 1
   },
   title: {
     fontSize: 40,
-    textAlign: 'center',
-    fontWeight: 'bold',
+    textAlign: "center",
+    fontWeight: "bold",
+    color: "white"
   },
-  SearchBar: {
-    width: '80%',
-    alignSelf: 'center',
-    borderWidth: 1,
-    borderColor: 'black',
-    marginBottom: 25,
+  icon: {
+    color: "white",
+    textAlign: "right",
+  },
+  modalIcon: {
+    color: "white",
+    textAlign: "left",
+    backgroundColor: "black"
+
   },
   mainPageName: {
     fontSize: 25,
-    fontWeight: 'bold',
+    fontWeight: "bold",
+    color: 'white'
   },
   mainPageStats: {
-    fontSize: 15,
-    fontWeight: 'bold'
+    fontSize: 20,
+    fontWeight: "bold",
+    color: 'white'
   },
   separator: {
     marginVertical: 30,
     height: 1,
-    width: '80%',
-  },
-  ModalImage: {
-    alignItems: "center",
-   justifyContent: "center",
-   marginTop: 70
+    width: "80%",
+    backgroundColor: "yellow"
   },
   modalPageName: {
-    fontSize: 25,
-    fontWeight: 'bold',
+    fontSize: 40,
+    fontWeight: "bold",
+    color: 'white'
   },
   modalPageStats: {
     fontSize: 20,
-    fontWeight: 'bold',
-    marginVertical: 5
+    fontWeight: "bold",
+    marginVertical: 5,
+    color: 'white',
+    textAlign: "center",
+    margin: 20
   },
+  Hline: {
+    borderBottomWidth: 2,
+    borderBottomColor: "yellow"
+  }
 });

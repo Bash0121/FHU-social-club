@@ -26,15 +26,15 @@ export default function TabLayout() {
         headerShown: useClientOnlyValue(false, true),
       }}>
       <Tabs.Screen
-        name="homepage"
+        name="index"
         options={{
-          title: 'Homepage',
+          title: 'Home',
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
         }}
       />
     
       <Tabs.Screen
-        name="index"
+        name="directory"
         options={{
           title: 'Directory',
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
