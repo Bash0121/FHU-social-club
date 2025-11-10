@@ -11,11 +11,13 @@ import {
 } from "react-native";
 
 export default function AuthScreen() {
-  const { user, loading, login, register, logout } = useAuth();
+  const { user, member, loading, login, register, logout, updateMember } = useAuth();
 
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
-  const [name, setName] = useState(""); // only used in register
+  const [name, setName] = useState("");
+  const [club, setClub] = useState("")
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +30,7 @@ export default function AuthScreen() {
         await login(email.trim(), password);
         router.replace("(tabs)")
       } else {
-        await register(email.trim(), password, name.trim());
+        await register(email.trim(), password, name.trim(), phone, club);
         router.replace("(tabs)")
       }
     } catch (err: any) {
@@ -69,6 +71,22 @@ export default function AuthScreen() {
           />
         </>
       )}
+
+      <Text style={styles.label}>Club</Text>
+            <TextInput
+              style={styles.input}
+              value={club}
+              onChangeText={setClub}
+              placeholder="xbx"
+            />
+
+            <Text style={styles.label}>Phone</Text>
+            <TextInput
+              style={styles.input}
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="+12223334444"
+            />
 
       <Text style={styles.label}>Email</Text>
       <TextInput

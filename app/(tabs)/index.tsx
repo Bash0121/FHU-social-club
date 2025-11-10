@@ -1,4 +1,4 @@
-import { createAppwriteService } from "@/lib/appwrite";
+import { APPWRITE_CONFIG, createAppwriteService } from "@/lib/appwrite";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useMemo, useState } from "react";
 import {
@@ -25,7 +25,7 @@ export default function Homepage({}) {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [profileVisability, setProfileVisability] = useState(false);
 
-  const appwriteService = useMemo(() => createAppwriteService(), []);
+  const appwriteService = useMemo(() => createAppwriteService(APPWRITE_CONFIG), []);
 
   useEffect(() => {
     const loadEvents = async () => {

@@ -83,7 +83,7 @@ if (!user) {
 
   const q = query.trim().toLowerCase()
   return students.filter((person) => {
-    const sameClub = person.club === member.club
+    const sameClub = person.club === member?.club
     const matchesQuery = 
     person.firstName.toLowerCase().includes(q) ||
     person.lastName.toLowerCase().includes(q)
@@ -133,7 +133,7 @@ if (!user) {
       </View>
     ) : (
       <>
-      <Text style={styles.title}>{member.club}'s Club Directory</Text>
+      <Text style={styles.title}>{member?.club}'s Club Directory</Text>
 
       <View style={{backgroundColor: 'black'}}>
       <TextInput

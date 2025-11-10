@@ -52,7 +52,7 @@ export default function AuthScreen() {
         <Text style={styles.label}>Email</Text>
         <Text style={styles.value}>{user.email}</Text>
         <Text style={styles.label}>Club</Text>
-        <Text style={styles.value}>{member.club ?? "No club a"}</Text>
+        <Text style={styles.value}>{member?.club ?? "No club a"}</Text>
 
         <TouchableOpacity
           style={[styles.button, styles.logoutButton]}
